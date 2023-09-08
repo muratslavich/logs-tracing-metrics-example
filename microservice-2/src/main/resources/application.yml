@@ -1,0 +1,13 @@
+server:
+    port : 8082
+
+spring.application.name: server
+
+management:
+    endpoints.web.exposure.include: '*' # health,info,prometheus
+
+    tracing:
+        enabled: true
+
+logging.pattern.level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+
