@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.web.reactive.function.client.ExchangeStrategies
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitExchange
 import reactor.core.publisher.Hooks
@@ -20,7 +21,7 @@ class Microservice1Application
 
 fun main(args: Array<String>) {
     // https://micrometer.io/docs/observation#instrumentation_of_reactive_libraries_after_reactor_3_5_3
-    Hooks.enableAutomaticContextPropagation();
+    Hooks.enableAutomaticContextPropagation()
     runApplication<Microservice1Application>(*args)
 }
 
@@ -54,6 +55,11 @@ class MyContext(
             logger.info { "here we go ${registry.currentObservation!!.context.name}" }
             WebClient.builder()
                 .observationRegistry(registry)
+                // enable headers logging
+                .exchangeStrategies(ExchangeStrategies.builder().codecs {
+                    it.defaultCodecs().enableLoggingRequestDetails(true) }
+                    .build()
+                )
                 .build()
                 .get()
                 .uri("http://127.0.0.1:8082/tests")
