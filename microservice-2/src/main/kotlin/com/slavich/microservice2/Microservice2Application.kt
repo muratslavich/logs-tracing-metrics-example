@@ -70,7 +70,12 @@ class FooController {
         runBlocking {
             launch { first() }
             launch { second() }
+            launch { sendToKafka() }
         }
+    }
+
+    private suspend fun sendToKafka() {
+        logger.info { "here message sends to kafka" }
     }
 
     private suspend fun first() {
