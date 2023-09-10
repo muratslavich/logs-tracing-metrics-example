@@ -1,0 +1,33 @@
+server:
+  port: 8083
+
+spring.application.name: service3
+
+management:
+  endpoints.web.exposure.include: '*' # health,info,prometheus
+
+  tracing:
+    sampling:
+      probability: 1.0
+    enabled: true
+
+logging:
+  level:
+    web: debug
+  pattern.level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+
+
+spring:
+  codec:
+    log-request-details: true
+  kafka:
+    consumer:
+      bootstrap-servers: localhost:29092
+      group-id: service3
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      bootstrap-servers: localhost:29092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer

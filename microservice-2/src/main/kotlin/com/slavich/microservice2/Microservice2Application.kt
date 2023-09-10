@@ -10,6 +10,8 @@ import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.annotation.KafkaListener
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
+import org.springframework.kafka.core.ConsumerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.core.ProducerFactory
 import org.springframework.stereotype.Component
@@ -42,6 +44,16 @@ class ObservationConfig {
         val stringStringKafkaTemplate = KafkaTemplate(producerFactory)
         stringStringKafkaTemplate.setObservationEnabled(true)
         return stringStringKafkaTemplate
+    }
+
+    @Bean
+    fun kafkaListenerContainerFactory(consumerFactory: ConsumerFactory<String, String>): ConcurrentKafkaListenerContainerFactory<String, String> {
+        val factory = ConcurrentKafkaListenerContainerFactory<String, String>()
+
+        //The following code enable observation in the consumer listener
+        factory.containerProperties.isObservationEnabled = true
+        factory.consumerFactory = consumerFactory
+        return factory
     }
 
     @Bean
