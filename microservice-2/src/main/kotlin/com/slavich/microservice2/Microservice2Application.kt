@@ -9,6 +9,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.kafka.annotation.KafkaListener
+import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.kafka.core.ProducerFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
@@ -17,6 +20,8 @@ import org.springframework.web.server.WebFilter
 import org.springframework.web.server.WebFilterChain
 import reactor.core.publisher.Hooks
 import reactor.core.publisher.Mono
+import java.io.IOException
+import kotlin.random.Random
 
 
 private val logger = io.github.oshai.kotlinlogging.KotlinLogging.logger {}
@@ -31,6 +36,13 @@ fun main(args: Array<String>) {
 
 @Configuration
 class ObservationConfig {
+
+    @Bean
+    fun kafkaTemplate(producerFactory: ProducerFactory<String, String>): KafkaTemplate<String, String> {
+        val stringStringKafkaTemplate = KafkaTemplate(producerFactory)
+        stringStringKafkaTemplate.setObservationEnabled(true)
+        return stringStringKafkaTemplate
+    }
 
     @Bean
     @ConditionalOnProperty(prefix = "log-observation-events", name = ["enabled"], matchIfMissing = false)
@@ -62,7 +74,9 @@ class RequestMonitorWebFilter : WebFilter {
 
 
 @RestController
-class FooController {
+class FooController(
+    val kafkaTemplate: KafkaTemplate<String, String>,
+) {
 
     @GetMapping("/tests")
     fun foo() {
@@ -74,8 +88,15 @@ class FooController {
         }
     }
 
+    @KafkaListener(topics = ["TUNNEL_RESPONSE"], groupId = "group_id")
+    @Throws(IOException::class)
+    fun consume(message: String) {
+        logger.info { "here we consume kafka response $message" }
+    }
+
     private suspend fun sendToKafka() {
         logger.info { "here message sends to kafka" }
+        kafkaTemplate.send("TUNNEL", Random.nextInt().toString())
     }
 
     private suspend fun first() {

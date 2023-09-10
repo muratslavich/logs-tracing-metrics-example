@@ -1,4 +1,4 @@
 
 dependencies {
-//    implementation("io.zipkin.reporter2:zipkin-reporter-brave")
+    implementation("org.springframework.kafka:spring-kafka")
 }
